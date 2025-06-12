@@ -11,7 +11,7 @@ import imageio
 
 def find_overall_bbox():
     root_dir_path = "datasets/UTD-MHAD"
-    depth_dir_path = os.path.join(root_dir_path, "")
+    depth_dir_path = os.path.join(root_dir_path, "Depth")
 
     data_sum = np.zeros((240, 320), dtype=np.int64)
     for idx, action in enumerate(range(1, 28)):
@@ -149,7 +149,7 @@ def save_crop_image():
 
 
 def analyse_MHAD():
-    data_dir = "datasets/UTD-MHAD/crop_image"
+    data_dir = "/dataset/UTD-MHAD/crop_image"
     video_name_list = os.listdir(data_dir)
     video_name_list.sort()
     video_path_list = [os.path.join(data_dir, x) for x in video_name_list]
@@ -185,8 +185,7 @@ def split_train_test_MHAD():
 
 if __name__ == "__main__":
     # the train/test split can be found in:
-    # split_train_test_MHAD()
+    split_train_test_MHAD()
 
     # use this function to perform the cropping
     save_crop_image()
-    # pass

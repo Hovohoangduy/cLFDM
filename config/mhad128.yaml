@@ -1,13 +1,5 @@
-#Copyright Snap Inc. 2021. This sample code is made available by Snap Inc. for informational purposes only.
-#No license, whether implied or otherwise, is granted in or to such code (including any rights to copy, modify,
-#publish, distribute and/or commercialize such code), unless you have entered into a separate agreement for such rights.
-#Such code is provided as-is, without warranty of any kind, express or implied, including any warranties of merchantability,
-#title, fitness for a particular purpose, non-infringement, or that such code is free of defects, errors or viruses.
-#In no event will Snap Inc. be liable for any damages or losses of any kind arising from the sample code or your use thereof.
-
-
 dataset_params:
-  root_dir: datasets/UTD-MHAD
+  root_dir: datasets/UTD-MHAD/crop_image
   frame_shape: 128
   id_sampling: True
   pairs_list: null
@@ -63,8 +55,8 @@ train_params:
   num_repeats: 100
   epoch_milestones: [60, 90]
   lr: 2.0e-4
-  batch_size: 100
-  dataloader_workers: 6
+  batch_size: 6
+  dataloader_workers: 1
   print_freq: 10
   save_img_freq: 100
   update_ckpt_freq: 5000

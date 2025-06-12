@@ -46,7 +46,7 @@ def setup_seed(seed):
 
 
 if __name__ == "__main__":
-    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     cudnn.enabled = True
     cudnn.benchmark = True
 

@@ -11,6 +11,7 @@ import timeit
 from modules.util import Visualizer
 import imageio
 import math
+import gc
 
 
 class AverageMeter(object):
@@ -122,12 +123,12 @@ def train(config, generator, region_predictor, bg_predictor, checkpoint, log_dir
                     loss_affine=losses_equiv_affine
                 ))
 
-            if actual_step % train_params['save_img_freq'] == 0:
-                save_image = visualizer.visualize(x['driving'], x['source'], generated, index=0)
-                save_name = 'B' + format(train_params["batch_size"], "04d") + '_S' + format(actual_step, "06d") \
-                            + '_' + x["frame"][0][0][:-4] + '_to_' + x["frame"][1][0][-7:]
-                save_file = os.path.join(config["imgshots"], save_name)
-                imageio.imsave(save_file, save_image)
+            # if actual_step % train_params['save_img_freq'] == 0:
+            #     save_image = visualizer.visualize(x['driving'], x['source'], generated, index=0)
+            #     save_name = 'B' + format(train_params["batch_size"], "04d") + '_S' + format(actual_step, "06d") \
+            #                 + '_' + x["frame"][0][0][:-4] + '_to_' + x["frame"][1][0][-7:]
+            #     save_file = os.path.join(config["imgshots"], save_name)
+            #     imageio.imsave(save_file, save_image)
 
             if actual_step % config["save_ckpt_freq"] == 0 and cnt != 0:
                 print('taking snapshot...')
@@ -150,6 +151,10 @@ def train(config, generator, region_predictor, bg_predictor, checkpoint, log_dir
                             'region_predictor': region_predictor.state_dict(),
                             'optimizer': optimizer.state_dict()},
                            os.path.join(config["snapshots"], 'RegionMM.pth'))
+
+            del x, generated, losses, loss, loss_values
+            gc.collect()
+            torch.cuda.empty_cache()
 
             if actual_step >= final_step:
                 break
