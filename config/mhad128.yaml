@@ -55,7 +55,7 @@ train_params:
   num_repeats: 100
   epoch_milestones: [60, 90]
   lr: 2.0e-4
-  batch_size: 32
+  batch_size: 48
   dataloader_workers: 6
   print_freq: 10
   save_img_freq: 100
