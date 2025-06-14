@@ -1,5 +1,7 @@
 dataset_params:
-  root_dir: datasets/UTD-MHAD/crop_image
+  # root_dir: datasets/UTD-MHAD/crop_image
+  # Kaggel dir
+  root_dir: /kaggle/input/mhad-dataset/crop_image
   frame_shape: 128
   id_sampling: True
   pairs_list: null
