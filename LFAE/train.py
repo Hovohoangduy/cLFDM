@@ -3,12 +3,12 @@
 import os.path
 import torch
 from torch.utils.data import DataLoader
-from modules.model import ReconstructionModel
+from LFAE.modules.model import ReconstructionModel
 from torch.optim.lr_scheduler import MultiStepLR
 from sync_batchnorm import DataParallelWithCallback
-from frames_dataset import DatasetRepeater
+from LFAE.frames_dataset import DatasetRepeater
 import timeit
-from modules.util import Visualizer
+from LFAE.modules.util import Visualizer
 import imageio
 import math
 import gc

@@ -21,10 +21,10 @@ from LFAE.modules.util import Visualizer
 import json_tricks as json
 
 start = timeit.default_timer()
-BATCH_SIZE = 10
-root_dir = '/data/hfn5052/text2motion/flowautoenc_video_mhad'
-data_dir = "/data/hfn5052/text2motion/dataset/MHAD/crop_image"
-GPU = "6"
+BATCH_SIZE = 4
+root_dir = 'datasets/UTD-MHAD/flowautoenc_video_mhad'
+data_dir = "datasets/UTD-MHAD/crop_image_mini"
+GPU = "0"
 postfix = ""
 INPUT_SIZE = 128
 N_FRAMES = 40
@@ -34,8 +34,8 @@ NUM_ITER = NUM_VIDEOS // BATCH_SIZE
 RANDOM_SEED = 1234
 MEAN = (0.0, 0.0, 0.0)
 # the path to trained LFAE model
-RESTORE_FROM = "/data/hfn5052/text2motion/RegionMM/log/mhad128/snapshots/RegionMM_0100_S043100.pth"
-config_pth = "/workspace/code/CVPR23_LFDM/config/mhad128.yaml"
+RESTORE_FROM = "log/mhad128/snapshots/RegionMM.pth"
+config_pth = "config/mhad128.yaml"
 
 CKPT_DIR = os.path.join(root_dir, "flowae-res"+postfix)
 os.makedirs(CKPT_DIR, exist_ok=True)

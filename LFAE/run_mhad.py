@@ -9,19 +9,19 @@ import yaml
 from argparse import ArgumentParser
 from shutil import copy
 
-from mhad_dataset import FramesDataset
+from LFAE.mhad_dataset import FramesDataset
 
-from modules.generator import Generator
-from modules.bg_motion_predictor import BGMotionPredictor
-from modules.region_predictor import RegionPredictor
-from modules.avd_network import AVDNetwork
+from LFAE.modules.generator import Generator
+from LFAE.modules.bg_motion_predictor import BGMotionPredictor
+from LFAE.modules.region_predictor import RegionPredictor
+from LFAE.modules.avd_network import AVDNetwork
 
 import torch
 import torch.backends.cudnn as cudnn
 import numpy as np
 import random
 
-from train import train
+from LFAE.train import train
 
 
 class Logger(object):

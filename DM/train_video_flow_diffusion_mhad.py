@@ -22,9 +22,9 @@ start = timeit.default_timer()
 BATCH_SIZE = 6
 MAX_EPOCH = 1200
 epoch_milestones = [800, 1000]
-root_dir = '/data/hfn5052/text2motion/videoflowdiff_mhad'
-data_dir = "/data/hfn5052/text2motion/dataset/MHAD/crop_image"
-GPU = "2"
+root_dir = 'log'
+data_dir = "/kaggle/input/mhad-mini/crop_image_mini"
+GPU = "0"
 postfix = "-joint-steplr-random-onlyflow-train-regionmm"  # sl: step-lr, rmm:regionmm
 joint = "joint" in postfix or "-j" in postfix  # allow joint training with unconditional model
 frame_sampling = "random" if "random" in postfix else "uniform"  # frame sampling strategy
@@ -35,9 +35,9 @@ else:
     null_cond_prob = 0.0
 split_train_test = "train" in postfix or "-tr" in postfix
 use_residual_flow = "-rf" in postfix
-config_pth = "/workspace/code/CVPR23_LFDM/config/mhad128.yaml"
+config_pth = "config/mhad128.yaml"
 # put your pretrained LFAE here
-AE_RESTORE_FROM = "/data/hfn5052/text2motion/RegionMM/log/mhad128/snapshots/RegionMM_0100_S043100.pth"
+AE_RESTORE_FROM = "/kaggle/input/checkpoints-mhad-clfdm/RegionMM.pth"
 INPUT_SIZE = 128
 N_FRAMES = 40
 LEARNING_RATE = 2e-4
@@ -94,7 +94,7 @@ def get_arguments():
     parser.add_argument("--start-step", default=0, type=int)
     parser.add_argument("--img-dir", type=str, default=IMGSHOT_DIR,
                         help="Where to save images of the model.")
-    parser.add_argument("--num-workers", default=8)
+    parser.add_argument("--num-workers", default=2)
     parser.add_argument("--final-step", type=int, default=int(NUM_STEPS_PER_EPOCH * MAX_EPOCH),
                         help="Number of training steps.")
     parser.add_argument("--gpu", default=GPU,
