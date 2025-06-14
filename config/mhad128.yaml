@@ -14,12 +14,12 @@ dataset_params:
       hue: 0.1
 
 model_params:
-  num_regions: 10
+  num_regions: 6
   num_channels: 3
   estimate_affine: True
   revert_axis_swap: True
   bg_predictor_params:
-    block_expansion: 32
+    block_expansion: 16
     max_features: 1024
     num_blocks: 5
     bg_type: 'affine'
@@ -34,7 +34,7 @@ model_params:
     fast_svd: False
   generator_params:
     block_expansion: 64
-    max_features: 512
+    max_features: 1024
     num_down_blocks: 2
     num_bottleneck_blocks: 6
     skips: True
@@ -55,8 +55,8 @@ train_params:
   num_repeats: 100
   epoch_milestones: [60, 90]
   lr: 2.0e-4
-  batch_size: 6
-  dataloader_workers: 1
+  batch_size: 32
+  dataloader_workers: 6
   print_freq: 10
   save_img_freq: 100
   update_ckpt_freq: 5000
