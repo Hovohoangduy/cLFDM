@@ -1,6 +1,6 @@
 # the code from https://github.com/lucidrains/video-diffusion-pytorch
 import torch
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, AutoModel
 from einops import rearrange
 
 
@@ -14,23 +14,19 @@ MODEL = None
 TOKENIZER = None
 BERT_MODEL_DIM = 768
 
-
 def get_tokenizer():
     global TOKENIZER
-    if not exists(TOKENIZER):
-        TOKENIZER = AutoTokenizer.from_pretrained('bert-base-cased')
+    if TOKENIZER is None:
+        TOKENIZER = AutoTokenizer.from_pretrained("bert-base-uncased")
     return TOKENIZER
-
 
 def get_bert():
     global MODEL
-    if not exists(MODEL):
-        MODEL = AutoTokenizer.from_pretrained('bert-base-cased')
+    if MODEL is None:
+        MODEL = AutoModel.from_pretrained("bert-base-uncased")
         if torch.cuda.is_available():
             MODEL = MODEL.cuda()
-
     return MODEL
-
 
 # tokenize
 
