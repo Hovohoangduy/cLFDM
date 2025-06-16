@@ -25,7 +25,7 @@ from sync_batchnorm import DataParallelWithCallback
 from DM.modules.text import tokenize, bert_embed
 
 start = timeit.default_timer()
-BATCH_SIZE = 20
+BATCH_SIZE = 8
 MAX_EPOCH = 1300
 epoch_milestones = [800, 1000]
 root_dir = 'log'
