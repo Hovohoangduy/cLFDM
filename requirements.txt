@@ -20,4 +20,5 @@ torchvision==0.17.0+cu118
 torchaudio==2.2.0+cu118
 --extra-index-url https://download.pytorch.org/whl/cu118
 tqdm
-transformers
+transformers==4.36.2
+accelerate==0.24.1
