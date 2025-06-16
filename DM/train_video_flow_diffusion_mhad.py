@@ -19,7 +19,7 @@ from DM.modules.video_flow_diffusion_model import FlowDiffusion
 from torch.optim.lr_scheduler import MultiStepLR
 
 start = timeit.default_timer()
-BATCH_SIZE = 6
+BATCH_SIZE = 2
 MAX_EPOCH = 1200
 epoch_milestones = [800, 1000]
 root_dir = 'log'
