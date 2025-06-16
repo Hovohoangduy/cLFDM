@@ -28,9 +28,9 @@ start = timeit.default_timer()
 BATCH_SIZE = 20
 MAX_EPOCH = 1300
 epoch_milestones = [800, 1000]
-root_dir = '/data/hfn5052/text2motion/videoflowdiff_mhad'
-data_dir = "/data/hfn5052/text2motion/dataset/MHAD/crop_image"
-GPU = "0,3,4,5"
+root_dir = 'log'
+data_dir = "/kaggle/input/mhad-mini/crop_image_mini"
+GPU = "0,1"
 postfix = "-j-vr-of"
 joint = "joint" in postfix or "-j" in postfix  # allow joint training with unconditional model
 if "random" in postfix:
@@ -57,9 +57,9 @@ N_FRAMES = 40
 LEARNING_RATE = 2e-4
 RANDOM_SEED = 1234
 MEAN = (0.0, 0.0, 0.0)
-config_pth = "/workspace/code/CVPR23_LFDM/config/mhad128.yaml"
+config_pth = "config/mhad128.yaml"
 # put your pretrained LFAE here
-AE_RESTORE_FROM = "/data/hfn5052/text2motion/RegionMM/log/mhad128/snapshots/RegionMM_0100_S043100.pth"
+AE_RESTORE_FROM = "/kaggle/input/checkpoints-mhad-clfdm/RegionMM.pth"
 RESTORE_FROM = ""
 SNAPSHOT_DIR = os.path.join(root_dir, 'snapshots' + postfix)
 IMGSHOT_DIR = os.path.join(root_dir, 'imgshots' + postfix)
