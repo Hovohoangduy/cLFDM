@@ -60,7 +60,7 @@ MEAN = (0.0, 0.0, 0.0)
 config_pth = "config/mhad128.yaml"
 # put your pretrained LFAE here
 AE_RESTORE_FROM = "/kaggle/input/checkpoints-mhad-clfdm/RegionMM.pth"
-RESTORE_FROM = ""
+RESTORE_FROM = "/kaggle/input/checkpoints-mhad-clfdm/flowdiff.pth"
 SNAPSHOT_DIR = os.path.join(root_dir, 'snapshots' + postfix)
 IMGSHOT_DIR = os.path.join(root_dir, 'imgshots' + postfix)
 VIDSHOT_DIR = os.path.join(root_dir, "vidshots" + postfix)
