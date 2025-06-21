@@ -18,8 +18,8 @@ import cv2
 import matplotlib.pyplot as plt
 
 start = timeit.default_timer()
-root_dir = '/data/hfn5052/text2motion/cvpr23/demo_mhad'
-GPU = "1"
+root_dir = 'datasets/UTD-MHAD/demo'
+GPU = "0"
 postfix = "-j-sl-random-of-tr-rmm"
 INPUT_SIZE = 128
 N_FRAMES = 40
@@ -27,11 +27,10 @@ RANDOM_SEED = 2222
 MEAN = (0.0, 0.0, 0.0)
 cond_scale = 1.
 # downloaded the pretrained DM model and put its path here
-RESTORE_FROM = "/data/hfn5052/text2motion/videoflowdiff/snapshots-joint-steplr-random-onlyflow-train-regionmm/" \
-               "flowdiff_0006_S086400.pth"
+RESTORE_FROM = "log/mhad128/snaps_diff/flowdiff.pth"
 # downloaded the pretrained LFAE model and put its path here
-AE_RESTORE_FROM = "/data/hfn5052/text2motion/RegionMM/log/mhad128/snapshots/RegionMM_0100_S043100.pth"
-config_pth = "/workspace/code/CVPR23_LFDM/config/mug128.yaml"
+AE_RESTORE_FROM = "log/mhad128/snapshots/RegionMM.pth"
+config_pth = "config/mhad128.yaml"
 CKPT_DIR = os.path.join(root_dir, "demo"+postfix)
 os.makedirs(CKPT_DIR, exist_ok=True)
 print(root_dir)
@@ -48,7 +47,7 @@ def get_arguments():
       A list of parsed arguments.
     """
     parser = argparse.ArgumentParser(description="Flow Diffusion")
-    parser.add_argument("--num-workers", default=8)
+    parser.add_argument("--num-workers", default=1)
     parser.add_argument("--gpu", default=GPU,
                         help="choose gpu device.")
     parser.add_argument('--print-freq', '-p', default=10, type=int,
@@ -131,7 +130,7 @@ def main():
                    "forward lunge (left foot forward)",
                    "squat"]
 
-    ref_img_path = "/workspace/code/CVPR23_LFDM/demo/mhad_examples/a11_s4_t1_000.png"
+    ref_img_path = "demo/mhad_examples/a11_s4_t1_000.png"
     ref_img_name = os.path.basename(ref_img_path)[:-4]
     ref_img_npy = imageio.v2.imread(ref_img_path)[:, :, :3]
     ref_img_npy = cv2.resize(ref_img_npy, (336, 480), interpolation=cv2.INTER_AREA)
