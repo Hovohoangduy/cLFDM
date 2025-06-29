@@ -8,6 +8,8 @@ import math
 import yaml
 from argparse import ArgumentParser
 from shutil import copy
+import torch
+import torch.nn as nn
 
 from LFAE.mhad_dataset import FramesDataset
 
@@ -64,7 +66,7 @@ if __name__ == "__main__":
     parser.add_argument("--checkpoint", # use the pretrained Taichi model provided by Snap
                         default=None,
                         help="path to checkpoint to restore")
-    parser.add_argument("--device_ids", default="0,1", type=lambda x: list(map(int, x.split(','))),
+    parser.add_argument("--device_ids", default="0", type=lambda x: list(map(int, x.split(','))),
                         help="Names of the devices comma separated.")
     parser.add_argument("--verbose", dest="verbose", default=False, help="Print model architecture")
     parser.set_defaults(verbose=False)
@@ -104,7 +106,7 @@ if __name__ == "__main__":
                           **config['model_params']['generator_params'])
 
     if torch.cuda.is_available():
-        generator.to(opt.device_ids)
+        generator.to(opt.device_ids[0])
     if opt.verbose:
         print(generator)
 
@@ -114,7 +116,7 @@ if __name__ == "__main__":
                                        **config['model_params']['region_predictor_params'])
 
     if torch.cuda.is_available():
-        region_predictor.to(opt.device_ids)
+        region_predictor.to(opt.device_ids[0])
 
     if opt.verbose:
         print(region_predictor)
@@ -122,14 +124,14 @@ if __name__ == "__main__":
     bg_predictor = BGMotionPredictor(num_channels=config['model_params']['num_channels'],
                                      **config['model_params']['bg_predictor_params'])
     if torch.cuda.is_available():
-        bg_predictor.to(opt.device_ids)
+        bg_predictor.to(opt.device_ids[0])
     if opt.verbose:
         print(bg_predictor)
 
     avd_network = AVDNetwork(num_regions=config['model_params']['num_regions'],
                              **config['model_params']['avd_network_params'])
     if torch.cuda.is_available():
-        avd_network.to(opt.device_ids)
+        avd_network.to(opt.device_ids[0])
     if opt.verbose:
         print(avd_network)
 
