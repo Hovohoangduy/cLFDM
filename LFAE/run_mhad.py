@@ -104,7 +104,7 @@ if __name__ == "__main__":
                           **config['model_params']['generator_params'])
 
     if torch.cuda.is_available():
-        generator.to(opt.device_ids[0, 1])
+        generator.to(opt.device_ids)
     if opt.verbose:
         print(generator)
 
@@ -114,7 +114,7 @@ if __name__ == "__main__":
                                        **config['model_params']['region_predictor_params'])
 
     if torch.cuda.is_available():
-        region_predictor.to(opt.device_ids[0, 1])
+        region_predictor.to(opt.device_ids)
 
     if opt.verbose:
         print(region_predictor)
@@ -122,14 +122,14 @@ if __name__ == "__main__":
     bg_predictor = BGMotionPredictor(num_channels=config['model_params']['num_channels'],
                                      **config['model_params']['bg_predictor_params'])
     if torch.cuda.is_available():
-        bg_predictor.to(opt.device_ids[0, 1])
+        bg_predictor.to(opt.device_ids)
     if opt.verbose:
         print(bg_predictor)
 
     avd_network = AVDNetwork(num_regions=config['model_params']['num_regions'],
                              **config['model_params']['avd_network_params'])
     if torch.cuda.is_available():
-        avd_network.to(opt.device_ids[0, 1])
+        avd_network.to(opt.device_ids)
     if opt.verbose:
         print(avd_network)
 
