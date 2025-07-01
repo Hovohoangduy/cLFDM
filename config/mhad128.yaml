@@ -1,5 +1,5 @@
 dataset_params:
-  root_dir: datasets/UTD-MHAD/crop_image_resized
+  # root_dir: datasets/UTD-MHAD/crop_image_resized
   ### Kaggel dir
   root_dir: /kaggle/input/mhad-resized/crop_image_resized
   frame_shape: 128
