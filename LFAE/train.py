@@ -109,19 +109,19 @@ def train(config, generator, region_predictor, bg_predictor, checkpoint, log_dir
             losses_equiv_shift.update(loss_values[1], bs)
             losses_equiv_affine.update(loss_values[2], bs)
 
-            if actual_step % train_params["print_freq"] == 0:
-                print('iter: [{0}]{1}/{2}\t'
-                      'loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                      'loss_perc {loss_perc.val:.4f} ({loss_perc.avg:.4f})\n'
-                      'loss_shift {loss_shift.val:.4f} ({loss_shift.avg:.4f})\t'
-                      'loss_affine {loss_affine.val:.4f} ({loss_affine.avg:.4f})'
-                    .format(
-                    cnt, actual_step, final_step,
-                    loss=total_losses,
-                    loss_perc=losses_perc,
-                    loss_shift=losses_equiv_shift,
-                    loss_affine=losses_equiv_affine
-                ))
+            # if actual_step % train_params["print_freq"] == 0:
+            #     print('iter: [{0}]{1}/{2}\t'
+            #           'loss {loss.val:.4f} ({loss.avg:.4f})\t'
+            #           'loss_perc {loss_perc.val:.4f} ({loss_perc.avg:.4f})\n'
+            #           'loss_shift {loss_shift.val:.4f} ({loss_shift.avg:.4f})\t'
+            #           'loss_affine {loss_affine.val:.4f} ({loss_affine.avg:.4f})'
+            #         .format(
+            #         cnt, actual_step, final_step,
+            #         loss=total_losses,
+            #         loss_perc=losses_perc,
+            #         loss_shift=losses_equiv_shift,
+            #         loss_affine=losses_equiv_affine
+            #     ))
 
             # if actual_step % train_params['save_img_freq'] == 0:
             #     save_image = visualizer.visualize(x['driving'], x['source'], generated, index=0)
@@ -165,7 +165,17 @@ def train(config, generator, region_predictor, bg_predictor, checkpoint, log_dir
         epoch_cnt += 1
         # print lr
         print("epoch %d, lr= %.7f" % (epoch_cnt, optimizer.param_groups[0]["lr"]))
-
+        print('loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                'loss_perc {loss_perc.val:.4f} ({loss_perc.avg:.4f})\n'
+                'loss_shift {loss_shift.val:.4f} ({loss_shift.avg:.4f})\t'
+                'loss_affine {loss_affine.val:.4f} ({loss_affine.avg:.4f})'
+            .format(
+            cnt, actual_step, final_step,
+            loss=total_losses,
+            loss_perc=losses_perc,
+            loss_shift=losses_equiv_shift,
+            loss_affine=losses_equiv_affine
+        ))
     print('save the final model...')
     torch.save({'example': actual_step * train_params["batch_size"],
                 'epoch': epoch_cnt,
