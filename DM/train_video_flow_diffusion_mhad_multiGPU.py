@@ -29,7 +29,7 @@ BATCH_SIZE = 8
 MAX_EPOCH = 1300
 epoch_milestones = [800, 1000]
 root_dir = 'log'
-data_dir = "/kaggle/input/mhad-mini/crop_image_mini"
+data_dir = "/kaggle/input/mhad-resized/crop_image_resized"
 GPU = "0,1"
 postfix = "-j-vr-of"
 joint = "joint" in postfix or "-j" in postfix  # allow joint training with unconditional model
@@ -231,7 +231,6 @@ def main():
 
     scheduler = MultiStepLR(optimizer_diff, epoch_milestones, gamma=0.1, last_epoch=start_epoch - 1)
     print("epoch %d, lr= %.7f" % (epoch_cnt, optimizer_diff.param_groups[0]["lr"]))
-
     while actual_step < args.final_step:
         iter_end = timeit.default_timer()
 
