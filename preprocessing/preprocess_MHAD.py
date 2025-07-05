@@ -143,10 +143,10 @@ def save_crop_image():
                 image_dir_path = os.path.join(save_dir_path, image_dir_name)
                 os.makedirs(image_dir_path, exist_ok=True)
                 for image_idx, crop_frame in enumerate(crop_frame_list):
-                    resized_frame = cv2.resize(crop_frame, (48, 48), interpolation=cv2.INTER_AREA)
+                    # resized_frame = cv2.resize(crop_frame, (48, 48), interpolation=cv2.INTER_AREA)
                     crop_frame_name = image_dir_name + "_%03d.png" % image_idx
                     crop_frame_path = os.path.join(image_dir_path, crop_frame_name)
-                    imageio.imsave(crop_frame_path, resized_frame)
+                    imageio.imsave(crop_frame_path, crop_frame)
 
 
 def analyse_MHAD():
