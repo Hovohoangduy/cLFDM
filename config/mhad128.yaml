@@ -53,11 +53,11 @@ model_params:
     pose_bottle_size: 64
 
 train_params:
-  max_epochs: 100
+  max_epochs: 150
   num_repeats: 100
-  epoch_milestones: [60, 90]
+  epoch_milestones: [90, 120]
   lr: 2.0e-4
-  batch_size: 32
+  batch_size: 72
   dataloader_workers: 6
   print_freq: 2000
   save_img_freq: 100
