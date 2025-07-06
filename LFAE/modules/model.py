@@ -14,7 +14,29 @@ from LFAE.modules.util import AntiAliasInterpolation2d, make_coordinate_grid
 from torchvision import models
 import numpy as np
 from torch.autograd import grad
+import timm
+from timm.data import resolve_data_config
+from timm.data.transforms_factory import create_transform
 
+class ViT(nn.Module):
+    def __init__(self, requires_grad=False):
+        super(ViT, self).__init__()
+        self.model = timm.create_model('vit_base_patch16_224', pretrained=True, features_only=True)
+        self.model.eval()
+
+        if not requires_grad:
+            for param in self.parameters():
+                param.requires_grad = False
+
+        config = resolve_data_config({}, model=self.model)
+        self.transform = create_transform(**config)
+
+    def forward(self, x):
+        x = self.transform(x)
+        x = x.unsqueeze(0) if x.ndim == 3 else x
+        features = self.model(x)
+        # print(">>> [ViT DEBUG] features len:", len(features))  # Check here
+        return features
 
 class Vgg19(torch.nn.Module):
     """
@@ -157,7 +179,7 @@ class ReconstructionModel(torch.nn.Module):
         self.loss_weights = train_params['loss_weights']
 
         if sum(self.loss_weights['perceptual']) != 0:
-            self.vgg = Vgg19()
+            self.vgg = ViT()
             if torch.cuda.is_available():
                 self.vgg = self.vgg.cuda()
 
