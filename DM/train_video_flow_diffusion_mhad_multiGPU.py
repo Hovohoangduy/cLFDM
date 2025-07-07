@@ -29,7 +29,7 @@ BATCH_SIZE = 8
 MAX_EPOCH = 1300
 epoch_milestones = [800, 1000]
 root_dir = 'log'
-data_dir = "/kaggle/input/mhad-resized/crop_image_resized"
+data_dir = "/kaggle/input/mhad-mini/crop_image_mini"
 GPU = "0,1"
 postfix = "-j-vr-of"
 joint = "joint" in postfix or "-j" in postfix  # allow joint training with unconditional model
@@ -60,7 +60,7 @@ MEAN = (0.0, 0.0, 0.0)
 config_pth = "config/mhad128.yaml"
 # put your pretrained LFAE here
 AE_RESTORE_FROM = "/kaggle/input/checkpoints-mhad-clfdm/RegionMM.pth"
-RESTORE_FROM = "/kaggle/input/checkpoints-mhad-clfdm/flowdiff.pth"
+RESTORE_FROM = ""
 SNAPSHOT_DIR = os.path.join(root_dir, 'snapshots' + postfix)
 IMGSHOT_DIR = os.path.join(root_dir, 'imgshots' + postfix)
 VIDSHOT_DIR = os.path.join(root_dir, "vidshots" + postfix)

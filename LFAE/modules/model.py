@@ -179,7 +179,7 @@ class ReconstructionModel(torch.nn.Module):
         self.loss_weights = train_params['loss_weights']
 
         if sum(self.loss_weights['perceptual']) != 0:
-            self.vgg = ViT()
+            self.vgg = Vgg19()
             if torch.cuda.is_available():
                 self.vgg = self.vgg.cuda()
 
