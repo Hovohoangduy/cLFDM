@@ -21,7 +21,7 @@ from timm.data.transforms_factory import create_transform
 class ViT(nn.Module):
     def __init__(self, requires_grad=False):
         super(ViT, self).__init__()
-        self.model = timm.create_model('vit_base_patch16_224', pretrained=True, features_only=True)
+        self.model = timm.create_model('vit_small_patch16_224', pretrained=True, features_only=True)
         self.model.eval()
 
         if not requires_grad:
@@ -179,7 +179,8 @@ class ReconstructionModel(torch.nn.Module):
         self.loss_weights = train_params['loss_weights']
 
         if sum(self.loss_weights['perceptual']) != 0:
-            self.vgg = Vgg19()
+            # self.vgg = Vgg19()
+            self.vgg = ViT()
             if torch.cuda.is_available():
                 self.vgg = self.vgg.cuda()
 
