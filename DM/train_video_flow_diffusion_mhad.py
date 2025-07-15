@@ -15,7 +15,8 @@ from misc import Logger, grid2fig, conf2fig
 from DM.datasets_mhad import MHAD
 import sys
 import random
-from DM.modules.video_flow_diffusion_model import FlowDiffusion
+# from DM.modules.video_flow_diffusion_model import FlowDiffusion
+from DM.modules.video_flow_diffusion_model_with_LoRA import FlowDiffusion
 from torch.optim.lr_scheduler import MultiStepLR
 
 start = timeit.default_timer()
@@ -23,7 +24,7 @@ BATCH_SIZE = 2
 MAX_EPOCH = 1200
 epoch_milestones = [800, 1000]
 root_dir = 'log'
-data_dir = "/kaggle/input/mhad-mini/crop_image_mini"
+data_dir = "datasets/UTD-MHAD/crop_image_128"
 GPU = "0"
 postfix = "-joint-steplr-random-onlyflow-train-regionmm"  # sl: step-lr, rmm:regionmm
 joint = "joint" in postfix or "-j" in postfix  # allow joint training with unconditional model
@@ -37,7 +38,7 @@ split_train_test = "train" in postfix or "-tr" in postfix
 use_residual_flow = "-rf" in postfix
 config_pth = "config/mhad128.yaml"
 # put your pretrained LFAE here
-AE_RESTORE_FROM = "/kaggle/input/checkpoints-mhad-clfdm/RegionMM.pth"
+AE_RESTORE_FROM = "log/mhad128/snapshots/RegionMM.pth"
 INPUT_SIZE = 128
 N_FRAMES = 40
 LEARNING_RATE = 2e-4
@@ -145,16 +146,29 @@ def main():
     cudnn.benchmark = True
     setup_seed(args.random_seed)
 
-    model = FlowDiffusion(lr=LEARNING_RATE,
-                          is_train=True,
-                          img_size=INPUT_SIZE//4,
-                          num_frames=N_FRAMES,
-                          null_cond_prob=null_cond_prob,
-                          sampling_timesteps=1000,
-                          only_use_flow=only_use_flow,
-                          use_residual_flow=use_residual_flow,
-                          config_pth=config_pth,
-                          pretrained_pth=AE_RESTORE_FROM)
+    # model = FlowDiffusion(lr=LEARNING_RATE,
+    #                       is_train=True,
+    #                       img_size=INPUT_SIZE//4,
+    #                       num_frames=N_FRAMES,
+    #                       null_cond_prob=null_cond_prob,
+    #                       sampling_timesteps=1000,
+    #                       only_use_flow=only_use_flow,
+    #                       use_residual_flow=use_residual_flow,
+    #                       config_pth=config_pth,
+    #                       pretrained_pth=AE_RESTORE_FROM)
+    model = FlowDiffusion(
+        lr=LEARNING_RATE,
+        is_train=True,
+        img_size=INPUT_SIZE // 4,
+        num_frames=N_FRAMES,
+        null_cond_prob=null_cond_prob,
+        sampling_timesteps=1000,
+        only_use_flow=only_use_flow,
+        use_residual_flow=use_residual_flow,
+        config_pth=config_pth,
+        pretrained_pth=AE_RESTORE_FROM
+    )
+
     model.cuda()
 
     # Not set model to be train mode! Because pretrained flow autoenc need to be eval

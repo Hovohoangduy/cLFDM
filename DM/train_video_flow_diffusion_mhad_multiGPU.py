@@ -19,15 +19,16 @@ from misc import Logger, grid2fig, conf2fig
 from DM.datasets_mhad import MHAD
 import sys
 import random
-from DM.modules.video_flow_diffusion_model_multiGPU import FlowDiffusion
+# from DM.modules.video_flow_diffusion_model_multiGPU import FlowDiffusion
+from DM.modules.video_flow_diffusion_model_multiGPU_with_LoRA import FlowDiffusion
 from torch.optim.lr_scheduler import MultiStepLR
 from sync_batchnorm import DataParallelWithCallback
 from DM.modules.text import tokenize, bert_embed
 
 start = timeit.default_timer()
-BATCH_SIZE = 8
-MAX_EPOCH = 1300
-epoch_milestones = [800, 1000]
+BATCH_SIZE = 10
+MAX_EPOCH = 159
+epoch_milestones = [90, 120]
 root_dir = 'log'
 data_dir = "/kaggle/input/mhad-mini/crop_image_mini"
 GPU = "0,1"
@@ -163,17 +164,30 @@ def main():
     cudnn.benchmark = True
     setup_seed(args.random_seed)
 
-    model = FlowDiffusion(is_train=True,
-                          img_size=INPUT_SIZE // 4,
-                          num_frames=N_FRAMES,
-                          null_cond_prob=null_cond_prob,
-                          sampling_timesteps=200,
-                          use_residual_flow=use_residual_flow,
-                          learn_null_cond=learn_null_cond,
-                          use_deconv=use_deconv,
-                          padding_mode=padding_mode,
-                          config_pth=config_pth,
-                          pretrained_pth=AE_RESTORE_FROM)
+    # model = FlowDiffusion(is_train=True,
+    #                       img_size=INPUT_SIZE // 4,
+    #                       num_frames=N_FRAMES,
+    #                       null_cond_prob=null_cond_prob,
+    #                       sampling_timesteps=200,
+    #                       use_residual_flow=use_residual_flow,
+    #                       learn_null_cond=learn_null_cond,
+    #                       use_deconv=use_deconv,
+    #                       padding_mode=padding_mode,
+    #                       config_pth=config_pth,
+    #                       pretrained_pth=AE_RESTORE_FROM)
+    model = FlowDiffusion(
+        is_train=True,
+        img_size=INPUT_SIZE // 4,
+        num_frames=N_FRAMES,
+        null_cond_prob=null_cond_prob,
+        sampling_timesteps=200,
+        use_residual_flow=use_residual_flow,
+        learn_null_cond=learn_null_cond,
+        use_deconv=use_deconv,
+        padding_mode=padding_mode,
+        config_pth=config_pth,
+        pretrained_pth=AE_RESTORE_FROM
+    )
     model.cuda()
 
     # Not set model to be train mode! Because pretrained flow autoenc need to be eval (BatchNorm)
