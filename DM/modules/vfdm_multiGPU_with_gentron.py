@@ -62,7 +62,7 @@ class DiffusionTransformer(nn.Module):
         return self.to_out(x)
 
 # Main FlowDiffusion with GenTron for multi-GPU
-class FlowDiffusionGenTron(nn.Module):
+class FlowDiffusion(nn.Module):
     def __init__(
         self,
         img_size=32,
@@ -89,7 +89,12 @@ class FlowDiffusionGenTron(nn.Module):
         cfg = yaml.safe_load(open(config_pth))
         ckpt = torch.load(pretrained_pth) if pretrained_pth else None
         # spatial modules
-        self.generator = Generator(**cfg['model_params']['generator_params']).cuda()
+        self.generator = Generator(
+            num_regions=cfg['model_params']['num_regions'],
+            num_channels=cfg['model_params']['num_channels'],
+            revert_axis_swap=cfg['model_params']['revert_axis_swap'],
+            **cfg['model_params']['generator_params']
+        ).cuda()
         self.region_predictor = RegionPredictor(**cfg['model_params']['region_predictor_params']).cuda()
         self.bg_predictor = BGMotionPredictor(**cfg['model_params']['bg_predictor_params']).cuda()
         if ckpt:
@@ -157,24 +162,3 @@ class FlowDiffusionGenTron(nn.Module):
         h = torch.linspace(-1,1,H,device='cuda'); w = torch.linspace(-1,1,W,device='cuda')
         g = torch.stack(torch.meshgrid(h, w),-1).flip(2)
         return g.unsqueeze(0).unsqueeze(2).repeat(b,1,nf,1,1).permute(0,3,2,1,4)
-
-if __name__ == "__main__":
-    os.environ["CUDA_VISIBLE_DEVICES"] = os.getenv("CUDA_VISIBLE_DEVICES","")
-    model = FlowDiffusionGenTron(
-        img_size=128, num_frames=40, sampling_timesteps=250,
-        null_cond_prob=0.1, ddim_sampling_eta=1.0, timesteps=1000,
-        dim=64, depth=4, heads=8, dim_head=64, mlp_dim=256,
-        lr=1e-4, adam_betas=(0.9,0.999), is_train=True,
-        use_residual_flow=False,
-        pretrained_pth='pretrained.pth', config_pth='config.yaml'
-    )
-    model = DataParallelWithCallback(model)
-    # dummy
-    bs, nf, sz = 8, 40, 128
-    real_vid = torch.rand(bs,3,nf,sz,sz).cuda()
-    ref_img = torch.rand(bs,3,sz,sz).cuda()
-    cond_text = ['demo']*bs
-    cond = bert_embed(tokenize(cond_text), return_cls_repr=True).cuda()
-    model.module.set_train_input(real_vid, ref_img, cond)
-    loss = model(real_vid=real_vid, ref_img=ref_img, ref_text=cond)
-    sample = model.module.sample_video(ref_img, ['demo'], cond_scale=1.0)
