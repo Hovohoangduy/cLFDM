@@ -18,6 +18,7 @@ import sys
 import random
 # from DM.modules.video_flow_diffusion_model_multiGPU import FlowDiffusion
 from DM.modules.vfdm_multiGPU_with_LoRA import FlowDiffusion
+from DM.modules.vfdm_multiGPU_with_gentron import FlowDiffusionGenTron
 from torch.optim.lr_scheduler import MultiStepLR
 from sync_batchnorm import DataParallelWithCallback
 from DM.modules.text import tokenize, bert_embed
@@ -172,18 +173,39 @@ def main():
     #                       padding_mode=padding_mode,
     #                       config_pth=config_pth,
     #                       pretrained_pth=AE_RESTORE_FROM)
-    model = FlowDiffusion(
-        is_train=True,
-        img_size=INPUT_SIZE // 4,
-        num_frames=N_FRAMES,
-        null_cond_prob=null_cond_prob,
-        sampling_timesteps=200,
-        use_residual_flow=use_residual_flow,
-        learn_null_cond=learn_null_cond,
-        use_deconv=use_deconv,
-        padding_mode=padding_mode,
-        config_pth=config_pth,
-        pretrained_pth=AE_RESTORE_FROM
+    ### LoRA
+    # model = FlowDiffusion(
+    #     is_train=True,
+    #     img_size=INPUT_SIZE // 4,
+    #     num_frames=N_FRAMES,
+    #     null_cond_prob=null_cond_prob,
+    #     sampling_timesteps=200,
+    #     use_residual_flow=use_residual_flow,
+    #     learn_null_cond=learn_null_cond,
+    #     use_deconv=use_deconv,
+    #     padding_mode=padding_mode,
+    #     config_pth=config_pth,
+    #     pretrained_pth=AE_RESTORE_FROM
+    # )
+
+    model = FlowDiffusionGenTron(
+    img_size=INPUT_SIZE // 4,
+    num_frames=N_FRAMES,
+    sampling_timesteps=200,
+    null_cond_prob=null_cond_prob,
+    ddim_sampling_eta=1.0,
+    timesteps=1000,
+    dim=64,
+    depth=4,
+    heads=8,
+    dim_head=64,
+    mlp_dim=256,
+    lr=1e-4,
+    adam_betas=(0.9, 0.999),
+    is_train=True,
+    use_residual_flow=use_residual_flow,
+    pretrained_pth=AE_RESTORE_FROM,
+    config_pth=config_pth
     )
     model.cuda()
 
