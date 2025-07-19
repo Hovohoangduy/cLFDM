@@ -15,12 +15,12 @@ from misc import Logger, grid2fig, conf2fig
 from DM.datasets_mhad import MHAD
 import sys
 import random
-# from DM.modules.video_flow_diffusion_model import FlowDiffusion
 from DM.modules.vfdm_with_LoRA import FlowDiffusion
+from DM.modules.vfdm_with_gentron import FlowDiffusionGenTron
 from torch.optim.lr_scheduler import MultiStepLR
 
 start = timeit.default_timer()
-BATCH_SIZE = 2
+BATCH_SIZE = 1
 MAX_EPOCH = 1200
 epoch_milestones = [800, 1000]
 root_dir = 'log'
@@ -156,18 +156,41 @@ def main():
     #                       use_residual_flow=use_residual_flow,
     #                       config_pth=config_pth,
     #                       pretrained_pth=AE_RESTORE_FROM)
-    model = FlowDiffusion(
-        lr=LEARNING_RATE,
-        is_train=True,
-        img_size=INPUT_SIZE // 4,
+
+    # model = FlowDiffusion(
+    #     lr=LEARNING_RATE,
+    #     is_train=True,
+    #     img_size=INPUT_SIZE // 4,
+    #     num_frames=N_FRAMES,
+    #     null_cond_prob=null_cond_prob,
+    #     sampling_timesteps=1000,
+    #     only_use_flow=only_use_flow,
+    #     use_residual_flow=use_residual_flow,
+    #     config_pth=config_pth,
+    #     pretrained_pth=AE_RESTORE_FROM
+    # )
+
+    model = FlowDiffusionGenTron(
+        img_size=INPUT_SIZE//4,
         num_frames=N_FRAMES,
+        sampling_timesteps=250,
         null_cond_prob=null_cond_prob,
-        sampling_timesteps=1000,
+        ddim_sampling_eta=1.0,
+        timesteps=1000,
+        dim=64,               # hidden dimension
+        depth=4,              # transformer layers
+        heads=2,              # attention heads
+        dim_head=16,          # head dimension
+        mlp_dim=64*2,         # MLP hidden size
+        lr=LEARNING_RATE,
+        adam_betas=(0.9, 0.99),
+        is_train=True,
         only_use_flow=only_use_flow,
         use_residual_flow=use_residual_flow,
-        config_pth=config_pth,
-        pretrained_pth=AE_RESTORE_FROM
+        pretrained_pth=AE_RESTORE_FROM,
+        config_pth=config_pth
     )
+
 
     model.cuda()
 
