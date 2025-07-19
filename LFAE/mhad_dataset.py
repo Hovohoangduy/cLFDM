@@ -1,5 +1,3 @@
-# build MHAD dataset for RegionMM
-
 import os
 from skimage import io, img_as_float32
 from skimage.color import gray2rgb

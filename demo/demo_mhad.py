@@ -12,7 +12,7 @@ import timeit
 from PIL import Image
 from misc import grid2fig, conf2fig
 import random
-from DM.modules.video_flow_diffusion_model import FlowDiffusion
+from DM.modules.vfdm import FlowDiffusion
 from misc import resize
 import cv2
 import matplotlib.pyplot as plt

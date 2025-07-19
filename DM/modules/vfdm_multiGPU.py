@@ -1,47 +1,14 @@
-# based on video_flow_diffusion_model.py
-# use diffusion model to generate pseudo ground truth flow volume based on RegionMM
-# 3D noise to 3D flow
-# flow size: 2*32*32*40
-# enable multiple GPU
-
 import os
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from LFAE.modules.generator import Generator
 from LFAE.modules.bg_motion_predictor import BGMotionPredictor
 from LFAE.modules.region_predictor import RegionPredictor
-from DM.modules.video_flow_diffusion_multiGPU import Unet3D, GaussianDiffusion
+from DM.modules.vfd_multiGPU import Unet3D, GaussianDiffusion
 import yaml
 from sync_batchnorm import DataParallelWithCallback
 from DM.modules.text import tokenize, bert_embed
 
-class LoRALinear(nn.Module):
-    def __init__(self, in_features, out_features, r=4, alpha=1.0):
-        super().__init__()
-        self.r = r
-        self.alpha = alpha
-        self.weight = nn.Parameter(torch.randn(out_features, in_features) * 0.02)
-        if r > 0:
-            self.lora_down = nn.Linear(in_features, r, bias=False)
-            self.lora_up = nn.Linear(r, out_features, bias=False)
-            self.scaling = alpha / r
-        else:
-            self.lora_down = self.lora_up = None
-
-    def forward(self, x):
-        result = F.linear(x, self.weight)
-        if self.r > 0:
-            result += self.lora_up(self.lora_down(x)) * self.scaling
-        return result
-
-# --- Hàm thay thế Linear bằng LoRA ---
-def replace_linear_with_lora(module, r=4, alpha=8):
-    for name, child in module.named_children():
-        if isinstance(child, nn.Linear):
-            setattr(module, name, LoRALinear(child.in_features, child.out_features, r, alpha))
-        else:
-            replace_linear_with_lora(child, r, alpha)
 
 class FlowDiffusion(nn.Module):
     def __init__(self, img_size=32, num_frames=40, sampling_timesteps=250,
@@ -94,13 +61,6 @@ class FlowDiffusion(nn.Module):
                            use_final_activation=False,
                            use_deconv=use_deconv,
                            padding_mode=padding_mode)
-        
-        replace_linear_with_lora(self.unet, r=4, alpha=8)
-        self.set_requires_grad(self.unet, False)
-        for name, module in self.unet.named_modules():
-            if isinstance(module, LoRALinear):
-                for param in module.parameters():
-                    param.requires_grad = True
 
         self.diffusion = GaussianDiffusion(
             self.unet,

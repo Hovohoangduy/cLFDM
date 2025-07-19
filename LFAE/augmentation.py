@@ -1,7 +1,3 @@
-"""
-Code from https://github.com/hassony2/torch_videovision
-"""
-
 import numbers
 
 import random

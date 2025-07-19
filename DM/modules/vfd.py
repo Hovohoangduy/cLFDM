@@ -208,7 +208,7 @@ class Block(nn.Module):
             x = x * (scale + 1) + shift
 
         return self.act(x)
-    
+
 
 class ResnetBlock(nn.Module):
     def __init__(self, dim, dim_out, *, time_emb_dim=None, groups=8):
@@ -281,17 +281,6 @@ class EinopsToAndFrom(nn.Module):
         x = rearrange(x, f'{self.to_einops} -> {self.from_einops}', **reconstitute_kwargs)
         return x
 
-
-class FeedForward(nn.Module):
-    def __init__(self, dim, mult=4):
-        super().__iniit__()
-        self.net = nn.Sequential(
-            nn.Linear(dim, dim*mult),
-            nn.GELU(),
-            nn.Linear(dim*mult, dim)
-        )
-    def forward(self, x):
-        return self.net(x)
 
 class Attention(nn.Module):
     def __init__(
@@ -371,59 +360,7 @@ class Attention(nn.Module):
         out = einsum('... h i j, ... h j d -> ... h i d', attn, v)
         out = rearrange(out, '... h n d -> ... n (h d)')
         return self.to_out(out)
-    
-class TransformerBlock(nn.Module):
-    def __init__(self, dim, heads=8, dim_head=64, mlp_mult=4.0):
-        super.__init__()
-        self.attn = nn.Sequential(
-            nn.LayerNorm(dim),
-            Attention(dim, heads, dim_head)
-        )
-        self.ff = nn.Sequential(
-            nn.LayerNorm(dim),
-            FeedForward(dim, mlp_mult)
-        )
-    
-    def forward(self, x):
-        x = x + self.attn(x)
-        x = x + self.ff(x)
-        return x
-    
-class VideoTransformerDiffusionNet(nn.Module):
-    def __init__(self, *, in_channels=3, dim=512, patch_size=(2, 4, 4), num_frames=16, image_size=64,
-                 depth=8, heads=8, dim_head=64):
-        super().__init__()
-        self.patch_size = patch_size
-        t, h, w = patch_size
-        assert num_frames % t == 0 and image_size % h == 0 and image_size % w == 0
-        self.num_patches = (num_frames // t) * (image_size // h) * (image_size // w)
-        self.patch_dim = in_channels * t * h * w
-        self.to_patch_embedding = nn.Sequential(
-            nn.Conv3d(in_channels, dim, kernel_size=patch_size, stride=patch_size),
-            nn.Flatten(2), #  (B, C, N)
-            nn.Transpose(1, 2) # (B, N, C)
-        )
-        self.pos_embedding = nn.Parameter(torch.randn(1, self.num_patches, dim))
-        self.transformer = nn.Sequential(
-            *[TransformerBlock(dim, heads=heads, dim_head=dim_head) for _ in range(depth)]
-        )
-        self.mlp_head = nn.Sequential(
-            nn.LayerNorm(dim),
-            nn.Linear(dim, self.patch_dim)
-        )
-    
-    def forward(self, x):
-        # x shape: (B, C, T, H, W)
-        x = self.to_patch_embedding(x)
-        x = x + self.pos_embedding
-        x = self.transformer(x)
-        x = self.mlp_head(x)
-        # Reshape back to (B, C, T, H, W)
-        p = self.patch_size
-        x = rearrange(x, 'b (t h w) (c) -> b c (t p1) (h p2) (w p3)',
-                      t=(x.shape[1] // ((p[1] * p[2]))), h=(x.shape[1] // ((p[0] * p[2]))),
-                      w=(x.shape[1] // ((p[0] * p[1]))), p1=p[0], p2=p[1], p3=p[2], c=3)
-        return x
+
 
 # model
 
@@ -499,7 +436,7 @@ class Unet3D(nn.Module):
         if self.learn_null_cond:
             self.null_cond_emb = nn.Parameter(torch.randn(1, cond_dim)) if self.has_cond else None
         else:
-            self.null_cond_emb = torch.zeros(1, cond_dim) if self.has_cond else None
+            self.null_cond_emb = torch.zeros(1, cond_dim).cuda() if self.has_cond else None
 
         cond_dim = time_dim + int(cond_dim or 0)
 
@@ -576,6 +513,10 @@ class Unet3D(nn.Module):
             cond_scale=2.,
             **kwargs
     ):
+        if cond_scale == 0:
+            null_logits = self.forward(*args, null_cond_prob=1., **kwargs)
+            return null_logits
+
         logits = self.forward(*args, null_cond_prob=0., **kwargs)
         if cond_scale == 1 or not self.has_cond:
             return logits
@@ -589,6 +530,7 @@ class Unet3D(nn.Module):
             time,
             cond=None,
             null_cond_prob=0.,
+            none_cond_mask=None,
             focus_present_mask=None,
             prob_focus_present=0.
             # probability at which a given batch sample will focus on the present (0. is all off, 1. is completely arrested attention across time)
@@ -613,7 +555,9 @@ class Unet3D(nn.Module):
         if self.has_cond:
             batch, device = x.shape[0], x.device
             self.null_cond_mask = prob_mask_like((batch,), null_cond_prob, device=device)
-            cond = torch.where(rearrange(self.null_cond_mask, 'b -> b 1'), self.null_cond_emb.to(cond.device), cond)
+            if none_cond_mask is not None:
+                self.null_cond_mask = torch.logical_or(self.null_cond_mask, torch.tensor(none_cond_mask).cuda())
+            cond = torch.where(rearrange(self.null_cond_mask, 'b -> b 1'), self.null_cond_emb, cond)
             t = torch.cat((t, cond), dim=-1)
 
         h = []
@@ -700,6 +644,8 @@ class GaussianDiffusion(nn.Module):
         self.sampling_timesteps = default(sampling_timesteps,
                                           timesteps)
         self.is_ddim_sampling = self.sampling_timesteps < timesteps
+        if self.is_ddim_sampling:
+            print("using ddim samping with %d steps" % sampling_timesteps)
         self.ddim_sampling_eta = ddim_sampling_eta
 
         # register buffer helper function that casts float64 to float32
@@ -912,14 +858,20 @@ class GaussianDiffusion(nn.Module):
 
         x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
 
+        if is_list_str(cond):
+            none_cond_mask = [ii == "None" for ii in cond]
+            cond = bert_embed(tokenize(cond), return_cls_repr=self.text_use_bert_cls)
+            cond = cond.to(device)
+
         pred_noise = self.denoise_fn.forward(torch.cat([x_noisy, fea], dim=1), t, cond=cond,
-                                             null_cond_prob=self.null_cond_prob,
-                                             **kwargs)
+                                        null_cond_prob=self.null_cond_prob,
+                                        none_cond_mask=none_cond_mask,
+                                        **kwargs)
 
         if self.loss_type == 'l1':
-            loss = F.l1_loss(noise, pred_noise, reduce=False)
+            loss = F.l1_loss(noise, pred_noise)
         elif self.loss_type == 'l2':
-            loss = F.mse_loss(noise, pred_noise, reduce=False)
+            loss = F.mse_loss(noise, pred_noise)
         else:
             raise NotImplementedError()
 
@@ -940,15 +892,15 @@ class GaussianDiffusion(nn.Module):
             # clip by threshold, depending on whether static or dynamic
             self.pred_x0 = pred_x0.clamp(-s, s) / s
 
-        return loss, self.denoise_fn.null_cond_mask
+        return loss
 
-    def forward(self, x, fea, cond, *args, **kwargs):
+    def forward(self, x, fea, text, *args, **kwargs):
         b, device, img_size, = x.shape[0], x.device, self.image_size
         # check_shape(x, 'b c f h w', c=self.channels, f=self.num_frames, h=img_size, w=img_size)
         t = torch.randint(0, self.num_timesteps, (b,), device=device).long()
         fea = fea.unsqueeze(dim=2).repeat(1, 1, x.size(2), 1, 1)
-
-        return self.p_losses(x, t, fea, cond, *args, **kwargs)
+        # x = normalize_img(x)
+        return self.p_losses(x, t, fea, cond=text, *args, **kwargs)
 
 
 # trainer class

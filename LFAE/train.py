@@ -1,5 +1,4 @@
 # train a LFAE
-# this code is based on RegionMM (MRAA): https://github.com/snap-research/articulated-animation
 import os.path
 import torch
 from torch.utils.data import DataLoader

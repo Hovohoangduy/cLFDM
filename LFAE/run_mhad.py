@@ -1,7 +1,3 @@
-# Estimate flow and occlusion mask via RegionMM for MHAD dataset
-# this code is based on RegionMM from Snap Inc.
-# https://github.com/snap-research/articulated-animation
-
 import os
 import sys
 import math

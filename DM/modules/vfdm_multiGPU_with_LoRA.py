@@ -1,39 +1,41 @@
 import os
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from LFAE.modules.generator import Generator
 from LFAE.modules.bg_motion_predictor import BGMotionPredictor
 from LFAE.modules.region_predictor import RegionPredictor
-from DM.modules.video_flow_diffusion_multiGPU import Unet3D, GaussianDiffusion
+from DM.modules.vfd_multiGPU import Unet3D, GaussianDiffusion
 import yaml
 from sync_batchnorm import DataParallelWithCallback
 from DM.modules.text import tokenize, bert_embed
 
-class GenTronBlock(nn.Module):
-    def __init__(self, dim, num_heads, mlp_ratio=0.4, drop=0.0, drop_path=0.0):
+class LoRALinear(nn.Module):
+    def __init__(self, in_features, out_features, r=4, alpha=1.0):
         super().__init__()
-        self.norm1 = nn.LayerNorm(dim)
-        self.self_attn = nn.MultiheadAttention(dim, num_heads, batch_first=True)
-        self.norm2 = nn.LayerNorm(dim)
-        self.cross_attn = nn.MultiheadAttention(dim, num_heads, batch_first=True)
-        self.norm3 = nn.LayerNorm(dim)
-        self.temp_attn = nn.MultiheadAttention(dim, num_heads, batch_first=True)
-        self.norm4 = nn.LayerNorm(dim)
-        self.mlp = nn.Sequential(
-            nn.Linear(dim, int(dim * mlp_ratio)),
-            nn.GELU(),
-            nn.Linear(int(dim * mlp_ratio), dim)
-        )
-    def forward(self, x, text_embed=None, motion_mask=None, num_frames=None):
-        B, TN, D = x.shape
-        assert num_frames is not None, "num_frames must be provided"
-        T = num_frames
-        N = TN // T
-        x = x + self.self_attn(self.norm1(x), self.norm1(x), self.norm1(x))[0]
-        if text_embed is not None:
-            x = x + self.cross_attn(self.norm2(x), text_embed, text_embed)[0]
-        if motion_mask is not None:
-            x = x.reshape(B, T, N, D).permute()
+        self.r = r
+        self.alpha = alpha
+        self.weight = nn.Parameter(torch.randn(out_features, in_features) * 0.02)
+        if r > 0:
+            self.lora_down = nn.Linear(in_features, r, bias=False)
+            self.lora_up = nn.Linear(r, out_features, bias=False)
+            self.scaling = alpha / r
+        else:
+            self.lora_down = self.lora_up = None
+
+    def forward(self, x):
+        result = F.linear(x, self.weight)
+        if self.r > 0:
+            result += self.lora_up(self.lora_down(x)) * self.scaling
+        return result
+
+# --- Hàm thay thế Linear bằng LoRA ---
+def replace_linear_with_lora(module, r=4, alpha=8):
+    for name, child in module.named_children():
+        if isinstance(child, nn.Linear):
+            setattr(module, name, LoRALinear(child.in_features, child.out_features, r, alpha))
+        else:
+            replace_linear_with_lora(child, r, alpha)
 
 class FlowDiffusion(nn.Module):
     def __init__(self, img_size=32, num_frames=40, sampling_timesteps=250,
@@ -86,6 +88,13 @@ class FlowDiffusion(nn.Module):
                            use_final_activation=False,
                            use_deconv=use_deconv,
                            padding_mode=padding_mode)
+        
+        replace_linear_with_lora(self.unet, r=4, alpha=8)
+        self.set_requires_grad(self.unet, False)
+        for name, module in self.unet.named_modules():
+            if isinstance(module, LoRALinear):
+                for param in module.parameters():
+                    param.requires_grad = True
 
         self.diffusion = GaussianDiffusion(
             self.unet,

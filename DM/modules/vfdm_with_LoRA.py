@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from LFAE.modules.generator import Generator
 from LFAE.modules.bg_motion_predictor import BGMotionPredictor
 from LFAE.modules.region_predictor import RegionPredictor
-from DM.modules.video_flow_diffusion import Unet3D, GaussianDiffusion
+from DM.modules.vfd import Unet3D, GaussianDiffusion
 import yaml
 
 # --- LoRA Linear Layer ---
@@ -93,13 +93,8 @@ class FlowDiffusion(nn.Module):
                            use_deconv=use_deconv,
                            padding_mode=padding_mode)
 
-        # Apply LoRA to Unet3D
         replace_linear_with_lora(self.unet, r=4, alpha=8)
-
-        # Freeze toàn bộ Unet trước
         self.set_requires_grad(self.unet, False)
-
-        # Chỉ bật gradient cho LoRA
         for name, module in self.unet.named_modules():
             if isinstance(module, LoRALinear):
                 for param in module.parameters():

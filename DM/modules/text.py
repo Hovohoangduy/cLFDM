@@ -1,4 +1,3 @@
-# the code from https://github.com/lucidrains/video-diffusion-pytorch
 import torch
 from transformers import AutoTokenizer, AutoModel
 from einops import rearrange
